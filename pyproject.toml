@@ -1,0 +1,41 @@
+[project]
+name = "lewis-ai-system"
+version = "0.2.0"
+description = "Production-ready Lewis AI System with vector DB, Redis cache, cost monitoring, and enhanced sandbox."
+authors = [{ name = "Lewis Engineering", email = "engineering@example.com" }]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.1",
+    "sqlalchemy>=2.0.25",
+    "asyncpg>=0.29.0",  # Async Postgres driver
+    "httpx>=0.27.0",
+    "tenacity>=8.2.3",
+    "python-dateutil>=2.9.0",
+    "python-jose[cryptography]>=3.3.0",  # JWT tokens
+    "passlib[bcrypt]>=1.7.4",  # Password hashing
+    "boto3>=1.34.0",  # S3 storage
+    "redis>=5.0.0",  # Caching and rate limiting
+    "python-multipart>=0.0.6",  # File uploads
+    "e2b-code-interpreter>=0.0.10",  # E2B Sandbox
+]
+
+[project.optional-dependencies]
+vector = [
+    "weaviate-client>=4.0.0",  # Vector database
+]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.5",
+    "httpx>=0.27.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
