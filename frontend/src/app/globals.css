@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 20% 6%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 20% 6%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 20% 4%;
+
+    --secondary: 217 20% 12%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 20% 12%;
+    --muted-foreground: 215 20.2% 55%;
+
+    --accent: 217 20% 12%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 20% 12%;
+    --input: 217 20% 12%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Google AI Studio Surface Colors */
+    --surface-1: 220 15% 11%;      /* #1E1F20 主背景 */
+    --surface-2: 220 14% 16%;      /* #28292A 卡片/面板 */
+    --surface-3: 220 12% 24%;      /* #3C4043 悬浮/激活 */
+    
+    /* Primary - Google Blue */
+    --primary: 214 95% 76%;        /* #A8C7FA */
+    --primary-foreground: 214 100% 12%;
+    --primary-container: 214 80% 25%; /* #0842A0 容器背景 */
+    
+    /* Base Colors */
+    --background: 220 15% 11%;
+    --foreground: 210 17% 95%;     /* #F1F3F4 */
+    --card: 220 14% 16%;
+    --card-foreground: 210 17% 95%;
+    --popover: 220 12% 20%;
+    --popover-foreground: 210 17% 95%;
+    
+    /* Secondary & Muted */
+    --secondary: 220 12% 24%;
+    --secondary-foreground: 210 17% 95%;
+    --muted: 220 12% 24%;
+    --muted-foreground: 220 9% 65%;  /* #9AA0A6 */
+    
+    /* Accent */
+    --accent: 214 95% 76%;
+    --accent-foreground: 214 100% 12%;
+    
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Borders & Inputs */
+    --border: 220 12% 20%;
+    --input: 220 14% 18%;
+    --ring: 214 95% 76%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
+    font-optical-sizing: auto;
+  }
+}
+
+/* Google AI Studio Design System Utilities */
+@layer utilities {
+  /* Surface Utilities */
+  .bg-surface-1 {
+    background-color: hsl(var(--surface-1));
+  }
+  
+  .bg-surface-2 {
+    background-color: hsl(var(--surface-2));
+  }
+  
+  .bg-surface-3 {
+    background-color: hsl(var(--surface-3));
+  }
+  
+  .bg-primary-container {
+    background-color: hsl(var(--primary-container));
+  }
+  
+  /* Google-style Rounded Corners */
+  .rounded-google {
+    border-radius: 1rem;      /* 16px */
+  }
+  
+  .rounded-google-lg {
+    border-radius: 1.5rem;    /* 24px */
+  }
+  
+  .rounded-google-xl {
+    border-radius: 2rem;      /* 32px */
+  }
+  
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Focus Ring - Google Style */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0;
+  }
+  
+  /* Hover Lift Effect */
+  .hover-lift {
+    @apply transition-transform hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* Backdrop Blur */
+  .backdrop-glass {
+    backdrop-filter: blur(12px);
+    background-color: hsla(var(--surface-2), 0.8);
+  }
+}
+
+/* Custom Scrollbar - Google Style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--surface-3));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted));
+}
+
+/* Scrollbar Utilities */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thumb-surface-3::-webkit-scrollbar-thumb {
+  background: hsl(var(--surface-3));
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Selection */
+::selection {
+  background-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary-foreground));
+}
