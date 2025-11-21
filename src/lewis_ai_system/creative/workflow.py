@@ -1,4 +1,8 @@
-"""Creative mode orchestration logic."""
+"""创作模式编排逻辑。
+
+本模块实现了创作模式的分阶段工作流，从简报接收、脚本生成、分镜规划、
+视频渲染到最终交付的完整流程。
+"""
 
 from __future__ import annotations
 
@@ -37,7 +41,11 @@ from .repository import BaseCreativeProjectRepository, creative_repository
 
 
 class CreativeOrchestrator:
-    """Executes the DAG-style workflow defined for Creative Mode."""
+    """创作模式编排器，执行 DAG 风格的工作流。
+    
+    管理创作项目的完整生命周期，包括简报扩展、脚本生成、分镜规划、
+    视频渲染和质量检查等阶段。
+    """
 
     def __init__(
         self,
@@ -45,6 +53,13 @@ class CreativeOrchestrator:
         storage: ArtifactStorage | None = None,
         video_provider_name: str | None = None,
     ) -> None:
+        """初始化创作模式编排器。
+        
+        Args:
+            repository: 项目存储库，如果为 None 则使用默认存储库
+            storage: 工件存储，如果为 None 则使用默认存储
+            video_provider_name: 视频提供商名称，如果为 None 则使用默认提供商
+        """
         self.repository = repository or creative_repository
         self.storage = storage or default_storage
         self.video_provider_name = video_provider_name or settings.video_provider_default
