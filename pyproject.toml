@@ -11,6 +11,7 @@ dependencies = [
     "pydantic-settings>=2.2.1",
     "sqlalchemy>=2.0.25",
     "asyncpg>=0.29.0",  # Async Postgres driver
+    "alembic>=1.13.0",  # Database migrations
     "httpx>=0.27.0",
     "tenacity>=8.2.3",
     "python-dateutil>=2.9.0",
@@ -18,8 +19,10 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",  # Password hashing
     "boto3>=1.34.0",  # S3 storage
     "redis>=5.0.0",  # Caching and rate limiting
+    "arq>=0.25.0",  # Async task queue
     "python-multipart>=0.0.6",  # File uploads
     "e2b-code-interpreter>=0.0.10",  # E2B Sandbox
+    "openai>=1.0.0",  # For DALL-E image generation
 ]
 
 [project.optional-dependencies]

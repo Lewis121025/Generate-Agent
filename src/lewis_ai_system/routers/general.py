@@ -93,7 +93,7 @@ async def list_sessions(tenant_id: str = "demo", limit: int = 50) -> GeneralSess
 async def send_message_with_files(
     session_id: str,
     prompt: str | None = Form(default=None),
-    files: list[UploadFile] | None = File(default=None),
+    files: list[UploadFile] | None = None,
 ) -> GeneralSessionResponse:
     """Accept user prompt + optional attachments, append to session, then run one iteration."""
     try:

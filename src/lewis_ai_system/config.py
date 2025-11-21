@@ -159,6 +159,46 @@ class Settings(BaseSettings):
             self.service_api_keys = values
         return self
 
+    @model_validator(mode="after")
+    def validate_production_keys(self) -> "Settings":
+        """生产环境必须配置真实的 API Keys,不允许使用 Mock 模式"""
+        if self.environment == "production":
+            # 检查核心 AI Provider Keys
+            if self.llm_provider_mode == "mock":
+                raise ValueError(
+                    "生产环境不允许使用 Mock LLM Provider! "
+                    "请设置 OPENROUTER_API_KEY 并将 LLM_PROVIDER_MODE 改为 'openrouter'"
+                )
+            
+            if not self.openrouter_api_key:
+                raise ValueError(
+                    "生产环境必须配置 OPENROUTER_API_KEY! "
+                    "请在 .env 文件中设置真实的 OpenRouter API Key"
+                )
+            
+            # 检查沙箱 Key
+            if self.sandbox.enabled and not self.e2b_api_key:
+                raise ValueError(
+                    "生产环境启用沙箱时必须配置 E2B_API_KEY! "
+                    "代码执行不能使用本地 exec(),请在 .env 中配置 E2B API Key"
+                )
+            
+            # 检查数据库配置
+            if not self.database_url:
+                raise ValueError(
+                    "生产环境必须配置 DATABASE_URL! "
+                    "请设置 PostgreSQL 数据库连接字符串"
+                )
+            
+            # 检查 Secret Key
+            if self.secret_key == "dev-secret-key-change-in-production":
+                raise ValueError(
+                    "生产环境必须修改 SECRET_KEY! "
+                    "请生成一个安全的随机密钥 (建议使用 openssl rand -hex 32)"
+                )
+        
+        return self
+
     @property
     def httpx_proxies(self) -> str | None:
         """Return proxy URL for httpx clients (prefer HTTPS)."""

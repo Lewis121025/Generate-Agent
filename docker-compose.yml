@@ -111,6 +111,33 @@ services:
     networks:
       - lewis-network
 
+  # ARQ Worker for async tasks (video generation, etc.)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lewis-worker
+    command: arq lewis_ai_system.task_queue.WorkerSettings
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://lewis:lewis_pass@postgres:5432/lewis_db
+      REDIS_URL: redis://redis:6379/0
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      RUNWAY_API_KEY: ${RUNWAY_API_KEY:-}
+      E2B_API_KEY: ${E2B_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - lewis-network
+    volumes:
+      - ./artifacts:/app/artifacts
+
 volumes:
   postgres-data:
   redis-data:

@@ -123,9 +123,20 @@ class PythonSandboxTool(Tool):
             
             return ToolResult(output=result, cost_usd=0.01) # E2B cost estimate
 
-        # Fallback to existing local logic
+        # 生产环境必须使用 E2B,不允许本地 fallback
+        if settings.environment == "production":
+            raise ToolExecutionError(
+                "生产环境代码执行失败! E2B Provider 不可用。"
+                "请确保已配置 E2B_API_KEY 环境变量。"
+            )
+        
+        # 开发环境的本地 fallback (仅用于测试)
+        logger.warning(
+            "⚠️  使用本地沙箱执行代码 - 仅供开发使用! "
+            "生产环境请务必配置 E2B_API_KEY。"
+        )
+        
         try:
-            # Try to use enhanced sandbox if available
             from .sandbox import get_sandbox
             sandbox = get_sandbox()
             execution_result = sandbox.execute_python(
@@ -143,20 +154,8 @@ class PythonSandboxTool(Tool):
             }
             return ToolResult(output=output, cost_usd=self.cost_estimate)
             
-        except ImportError:
-            # Fallback to basic sandbox if enhanced sandbox not available
-            local_vars: dict[str, Any] = {}
-            try:
-                exec(  # noqa: S102 - controlled sandbox
-                    code,
-                    {"__builtins__": self.allowed_builtins},
-                    local_vars,
-                )
-            except Exception as exc:  # pragma: no cover - exercise path
-                raise ToolExecutionError(f"Python sandbox failed: {exc}") from exc
-
-            result = local_vars.get("result", local_vars)
-            return ToolResult(output=result, cost_usd=self.cost_estimate)
+        except Exception as exc:
+            raise ToolExecutionError(f"本地沙箱执行失败: {exc}") from exc
 
 
 class WebSearchTool(Tool):

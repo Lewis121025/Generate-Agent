@@ -158,16 +158,25 @@ class EnhancedSandbox:
         restricted_builtins: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
-        Execute Python code in a restricted environment.
+        Execute Python code - 已废弃!
         
-        Args:
-            code: Python code to execute
-            allowed_modules: List of allowed module names
-            restricted_builtins: Dictionary of allowed builtin functions
+        ⚠️ 此方法仅供开发环境使用,生产环境必须使用 E2B 云沙箱。
+        本地 exec() 存在严重安全风险,不应在生产环境中使用。
         
-        Returns:
-            Dict with 'result', 'stdout', 'stderr', 'error' keys
+        如果在生产环境调用此方法,将抛出异常。
         """
+        # 生产环境强制禁用本地 exec()
+        if settings.environment == "production":
+            raise RuntimeError(
+                "生产环境禁止使用本地 exec() 执行代码! "
+                "请配置 E2B_API_KEY 并使用云端沙箱。"
+            )
+        
+        logger.warning(
+            "⚠️  使用本地 exec() 执行代码 - 此方法仅供开发/测试使用! "
+            "生产环境请务必配置 E2B 云沙箱。"
+        )
+        
         import io
         import sys
         

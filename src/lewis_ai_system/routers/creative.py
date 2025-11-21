@@ -27,9 +27,6 @@ async def create_project(payload: CreativeProjectCreateRequest) -> CreativeProje
 async def approve_script(project_id: str) -> CreativeProjectResponse:
     try:
         project = await creative_orchestrator.approve_script(project_id)
-        # Ensure project is not a coroutine
-        if hasattr(project, '__await__'):
-            project = await project
     except KeyError as exc:  # pragma: no cover - FastAPI handles
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
@@ -60,9 +57,6 @@ async def advance_project(project_id: str) -> CreativeProjectResponse:
 async def approve_preview(project_id: str) -> CreativeProjectResponse:
     try:
         project = await creative_orchestrator.approve_preview(project_id)
-        # Ensure project is not a coroutine
-        if hasattr(project, '__await__'):
-            project = await project
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
@@ -78,11 +72,7 @@ async def approve_preview(project_id: str) -> CreativeProjectResponse:
 @router.get("/projects", response_model=CreativeProjectListResponse)
 async def list_projects(tenant_id: str = "demo") -> CreativeProjectListResponse:
     try:
-        projects_obj = creative_repository.list_for_tenant(tenant_id)
-        if hasattr(projects_obj, '__await__'):
-            projects = await projects_obj  # type: ignore[func-returns-value]
-        else:
-            projects = projects_obj  # type: ignore[assignment]
+        projects = await creative_repository.list_for_tenant(tenant_id)
     except Exception as exc:
         from ..instrumentation import get_logger
         logger = get_logger()
@@ -98,18 +88,8 @@ async def get_project(project_id: str) -> CreativeProjectResponse:
     logger = get_logger()
     
     try:
-        # Get project - ensure we await the coroutine
-        project_coro = creative_repository.get(project_id)
-        if hasattr(project_coro, '__await__'):
-            project = await project_coro
-        else:
-            project = project_coro
-        
-        # Double-check: ensure project is not a coroutine (defensive programming)
-        if hasattr(project, '__await__'):
-            logger.warning(f"Project {project_id} is still a coroutine, awaiting again...")
-            project = await project
-        
+        # Get project
+        project = await creative_repository.get(project_id)
         logger.debug(f"Retrieved project {project_id}, state: {project.state}, type: {type(project)}")
     except KeyError as exc:  # pragma: no cover
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -130,3 +110,60 @@ async def get_project(project_id: str) -> CreativeProjectResponse:
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Serialization error: {str(exc)}") from exc
+
+
+@router.post("/projects/{project_id}/generate-video", status_code=202)
+async def generate_video(project_id: str) -> dict[str, Any]:
+    """
+    提交视频生成任务 (异步)
+    
+    Returns:
+        202 Accepted + task_id (用于轮询状态)
+    """
+    from ..task_queue import task_queue
+    from ..instrumentation import get_logger
+    
+    logger = get_logger()
+    
+    try:
+        # 获取项目信息
+        project = await creative_repository.get(project_id)
+        
+        # 检查项目状态
+        if not project.script:
+            raise HTTPException(status_code=400, detail="Project has no script")
+        if not project.storyboard:
+            raise HTTPException(status_code=400, detail="Project has no storyboard")
+        
+        # 提交任务到队列
+        task_id = await task_queue.enqueue_video_generation(
+            project_id=project.id,
+            script=project.script,
+            storyboard=project.storyboard,
+        )
+        
+        logger.info(f"Video generation task queued: {task_id} for project {project_id}")
+        
+        return {
+            "task_id": task_id,
+            "status": "queued",
+            "message": "视频生成任务已提交,请使用 task_id 查询进度"
+        }
+    
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.error(f"Error queuing video generation for project {project_id}: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to queue task: {str(exc)}") from exc
+
+
+@router.get("/tasks/{task_id}")
+async def get_task_status(task_id: str) -> dict[str, Any]:
+    """查询任务状态"""
+    from ..task_queue import task_queue
+    
+    try:
+        status = await task_queue.get_task_status(task_id)
+        return status
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to get task status: {str(exc)}") from exc

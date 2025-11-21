@@ -2,15 +2,31 @@
 const nextConfig = {
     output: 'standalone',
     async rewrites() {
-        // In Docker Compose, use service name; in local dev, use localhost
-        // Default to localhost for local development
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+        // 开发环境使用 127.0.0.1:8000，生产环境通过 BACKEND_URL 环境变量控制
+        const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
         return [
             {
                 source: "/api/:path*",
                 destination: `${backendUrl}/:path*`,
             },
         ];
+    },
+    // 配置图片域名白名单 (用于 AI 生成的图片)
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'oaidalleapiprodscus.blob.core.windows.net',
+            },
+            {
+                protocol: 'https',
+                hostname: '**.replicate.delivery',
+            },
+            {
+                protocol: 'https',
+                hostname: 'storage.googleapis.com',
+            },
+        ],
     },
 };
 
