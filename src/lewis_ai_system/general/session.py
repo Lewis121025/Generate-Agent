@@ -1,4 +1,8 @@
-"""General mode orchestrator implementing a ReAct style loop."""
+"""通用模式编排器，实现 ReAct 风格的循环执行。
+
+本模块实现了通用模式的会话管理和任务执行逻辑，使用 ReAct (Reasoning + Acting) 循环
+来逐步解决用户任务。
+"""
 
 from __future__ import annotations
 
@@ -18,6 +22,11 @@ from .repository import BaseGeneralSessionRepository, general_repository
 
 
 class GeneralModeOrchestrator:
+    """通用模式编排器，管理 ReAct 循环的执行和会话状态。
+    
+    负责创建会话、执行迭代、管理内存和压缩历史记录。
+    """
+    
     def __init__(
         self,
         repository: BaseGeneralSessionRepository | None = None,
@@ -25,18 +34,47 @@ class GeneralModeOrchestrator:
         memory_window: int = 5,
         compression_threshold: int = 25,
     ) -> None:
+        """初始化通用模式编排器。
+        
+        Args:
+            repository: 会话存储库，如果为 None 则使用默认存储库
+            tool_runtime: 工具运行时，如果为 None 则使用默认运行时
+            memory_window: 内存窗口大小（保留的最近消息数），默认 5
+            compression_threshold: 压缩阈值（超过此数量的消息将被压缩），默认 25
+        """
         self.repository = repository or general_repository
         self.tool_runtime = tool_runtime or default_tool_runtime
         self.memory_window = max(memory_window, 1)
         self.compression_threshold = max(compression_threshold, self.memory_window + 1)
 
     async def create_session(self, payload: GeneralSessionCreateRequest) -> GeneralSession:
+        """创建新的通用会话。
+        
+        Args:
+            payload: 会话创建请求
+            
+        Returns:
+            创建的会话对象
+        """
         session = await self.repository.create(payload)
         session.messages.append(f"Goal registered: {payload.goal}")
         await self.repository.upsert(session)
         return session
 
     async def run_iteration(self, session_id: str, prompt_text: str | None = None) -> GeneralSession:
+        """运行一次迭代，执行 ReAct 循环。
+        
+        Args:
+            session_id: 会话 ID
+            prompt_text: 可选的提示文本，如果提供则更新会话目标
+            
+        Returns:
+            更新后的会话对象
+            
+        Raises:
+            ValueError: 如果会话不存在或状态不正确
+            GuardrailTriggered: 如果触发保护机制（预算超限等）
+        """
         from ..instrumentation import get_logger
         logger = get_logger()
         
