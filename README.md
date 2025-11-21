@@ -40,7 +40,7 @@ graph TD
 
 2. **循环执行阶段** (最多执行 `max_steps` 次)
 
-   ```
+   ```text
    Question: 用户任务
    Thought: Agent 分析当前情况
    Action: 选择要使用的工具名称
