@@ -39,6 +39,7 @@ graph TD
    - 初始化预算限制和最大迭代次数
 
 2. **循环执行阶段** (最多执行 `max_steps` 次)
+
    ```
    Question: 用户任务
    Thought: Agent 分析当前情况
@@ -150,11 +151,13 @@ graph TD
 系统包含以下专用 Agent：
 
 #### PlanningAgent
+
 - **职责**: 扩展和优化用户输入的简报
 - **方法**: `expand_brief(prompt, mode)`
 - **用途**: 将简短的需求扩展为详细的项目描述
 
 #### CreativeAgent
+
 - **职责**: 处理创意内容生成
 - **主要方法**:
   - `write_script()`: 生成视频脚本
@@ -162,6 +165,7 @@ graph TD
   - `generate_panel_visual()`: 生成分镜预览图
 
 #### QualityAgent
+
 - **职责**: 执行质量评估和检查
 - **主要方法**:
   - `evaluate()`: 评估内容质量
@@ -170,11 +174,13 @@ graph TD
 - **特性**: 支持自定义 QC 规则引擎
 
 #### GeneralAgent
+
 - **职责**: 执行通用任务的 ReAct 循环
 - **主要方法**: `react_loop(query, tool_runtime, max_steps)`
 - **工作方式**: 通过思考-行动-观察循环逐步解决问题
 
 #### OutputFormatterAgent
+
 - **职责**: 格式化输出内容
 - **主要方法**: `summarize()`: 生成内容摘要
 
@@ -231,7 +237,7 @@ graph LR
 
 ### 系统架构
 
-```
+```text
 FastAPI 应用层
 ├── 路由层
 │   ├── /creative/* - 创作模式 API
@@ -312,7 +318,8 @@ FastAPI 应用层
 
 ### 配置
 
-主要环境变量:
+主要环境变量：
+
 - `DATABASE_URL` - PostgreSQL 连接字符串
 - `REDIS_URL` - Redis 连接字符串
 - `VECTOR_DB_URL` - Weaviate 端点 (可选)
@@ -323,7 +330,7 @@ FastAPI 应用层
 
 ## 项目结构
 
-```
+```text
 lewis_ai_system/
 ├── src/lewis_ai_system/
 │   ├── routers/          # API 路由处理
