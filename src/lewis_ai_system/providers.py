@@ -108,19 +108,33 @@ class OpenRouterLLMProvider:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        try:
-            client_kwargs: dict[str, object] = {"timeout": 60}
-            if settings.httpx_proxies:
-                client_kwargs["proxy"] = settings.httpx_proxies  # type: ignore
-            async with httpx.AsyncClient(**client_kwargs) as client:
-                response = await client.post(
-                    f"{self.base_url.rstrip('/')}/chat/completions",
-                    json=payload,
-                    headers=headers,
-                )
-                response.raise_for_status()
-        except httpx.HTTPError as exc:  # pragma: no cover - network failure path
-            raise RuntimeError(f"OpenRouter request failed: {exc}") from exc
+        
+        # 使用更合理的超时配置
+        timeout_config = httpx.Timeout(connect=10.0, read=180.0, write=30.0, pool=30.0)
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                client_kwargs: dict[str, object] = {"timeout": timeout_config}
+                if settings.httpx_proxies:
+                    client_kwargs["proxy"] = settings.httpx_proxies  # type: ignore
+                async with httpx.AsyncClient(**client_kwargs) as client:
+                    response = await client.post(
+                        f"{self.base_url.rstrip('/')}/chat/completions",
+                        json=payload,
+                        headers=headers,
+                    )
+                    response.raise_for_status()
+                    break
+            except httpx.ReadTimeout as exc:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5
+                    logger.warning(f"OpenRouter timeout (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise RuntimeError(f"OpenRouter request failed after {max_retries} retries: {exc}") from exc
+            except httpx.HTTPError as exc:  # pragma: no cover - network failure path
+                raise RuntimeError(f"OpenRouter request failed: {exc}") from exc
 
         data = response.json()
         try:
@@ -151,19 +165,32 @@ class OpenRouterLLMProvider:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        try:
-            client_kwargs = {"timeout": 60}
-            if settings.httpx_proxies:
-                client_kwargs["proxy"] = settings.httpx_proxies
-            async with httpx.AsyncClient(**client_kwargs) as client:
-                response = await client.post(
-                    f"{self.base_url.rstrip('/')}/chat/completions",
-                    json=payload,
-                    headers=headers,
-                )
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise RuntimeError(f"OpenRouter request failed: {exc}") from exc
+        
+        timeout_config = httpx.Timeout(connect=10.0, read=180.0, write=30.0, pool=30.0)
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                client_kwargs = {"timeout": timeout_config}
+                if settings.httpx_proxies:
+                    client_kwargs["proxy"] = settings.httpx_proxies
+                async with httpx.AsyncClient(**client_kwargs) as client:
+                    response = await client.post(
+                        f"{self.base_url.rstrip('/')}/chat/completions",
+                        json=payload,
+                        headers=headers,
+                    )
+                    response.raise_for_status()
+                    break
+            except httpx.ReadTimeout as exc:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5
+                    logger.warning(f"OpenRouter timeout (attempt {attempt + 1}/{max_retries}), retrying...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise RuntimeError(f"OpenRouter request failed after {max_retries} retries: {exc}") from exc
+            except httpx.HTTPError as exc:
+                raise RuntimeError(f"OpenRouter request failed: {exc}") from exc
 
         data = response.json()
         try:
